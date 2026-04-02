@@ -1,0 +1,15 @@
+{
+  "emails": [
+    {
+      "id": 1,
+      "sender": "gowrureshma@gmail.com",
+      "subject": "give me money",
+      "body_preview": "give the money , if not i will make u kill.",
+      "score": 0,
+      "risk": "LOW",
+      "flags": [],
+      "timestamp": "2026-04-02T18:08:25.910741"
+    }
+  ],
+  "total_analyzed": 1
+}

@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Email Triage & Phishing Intelligence Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --bg-light: #f8f9fa;
+            --bg-dark: #1a1a2e;
+            --text-dark: #2c3e50;
+            --text-light: #ecf0f1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-light) 0%, #e8eef3 100%);
+            min-height: 100vh;
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            background: linear-gradient(90deg, var(--primary-color) 0%, #34495e 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand i {
+            color: var(--warning-color);
+            font-size: 1.6rem;
+        }
+        
+        /* Header Section */
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1a252f 100%);
+            color: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .header-section h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header-section p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        /* Card Styles */
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+        
+        .card-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--bg-light);
+            padding-bottom: 0.75rem;
+        }
+        
+        .card-title i {
+            color: var(--secondary-color);
+        }
+        
+        /* Form Styles */
+        .email-input {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .email-input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            outline: none;
+        }
+        
+        .email-input textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        /* Button Styles */
+        .btn-analyze {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-analyze:hover {
+            background: linear-gradient(135deg, #2980b9 0%, var(--secondary-color) 100%);
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-demo {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-demo:hover {
+            background: linear-gradient(135deg, #e67e22 0%, var(--warning-color) 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
+        }
+        
+        /* Risk Score Display */
+        .risk-display {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .risk-score {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .risk-score.high {
+            color: var(--danger-color);
+            text-shadow: 0 0 30px rgba(231, 76, 60, 0.3);
+        }
+        
+        .risk-score.medium {
+            color: var(--warning-color);
+            text-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
+        }
+        
+        .risk-score.low {
+            color: var(--success-color);
+            text-shadow: 0 0 30px rgba(39, 174, 96, 0.3);
+        }
+        
+        .risk-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            display: inline-block;
+        }
+        
+        .risk-label.high {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--danger-color);
+        }
+        
+        .risk-label.medium {
+            background: rgba(243, 156, 18, 0.15);
+            color: #d68910;
+        }
+        
+        .risk-label.low {
+            background: rgba(39, 174, 96, 0.15);
+            color: var(--success-color);
+        }
+        
+        /* Flags List */
+        .flags-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .flag-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid var(--warning-color);
+            transition: all 0.3s ease;
+        }
+        
+        .flag-item:hover {
+            background: #f0f4f8;
+            transform: translateX(5px);
+        }
+        
+        .flag-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .flag-icon.danger {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--danger-color);
+        }
+        
+        .flag-icon.warning {
+            background: rgba(243, 156, 18, 0.15);
+            color: var(--warning-color);
+        }
+        
+        .flag-icon.info {
+            background: rgba(52, 152, 219, 0.15);
+            color: var(--secondary-color);
+        }
+        
+        .flag-content {
+            flex: 1;
+        }
+        
+        .flag-type {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .flag-description {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+        
+        .flag-score {
+            font-weight: 700;
+            color: var(--danger-color);
+            font-size: 1.1rem;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+        }
+        
+        /* Stats Cards */
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-card.total .stat-number {
+            color: var(--primary-color);
+        }
+        
+        .stat-card.high .stat-number {
+            color: var(--danger-color);
+        }
+        
+        .stat-card.medium .stat-number {
+            color: var(--warning-color);
+        }
+        
+        .stat-card.low .stat-number {
+            color: var(--success-color);
+        }
+        
+        /* History Table */
+        .history-table {
+            width: 100%;
+        }
+        
+        .history-table th {
+            background: var(--bg-light);
+            color: var(--primary-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border: none;
+        }
+        
+        .history-table td {
+            padding: 1rem;
+            border-color: #f0f0f0;
+            vertical-align: middle;
+        }
+        
+        .history-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .risk-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        
+        .risk-badge.high {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--danger-color);
+        }
+        
+        .risk-badge.medium {
+            background: rgba(243, 156, 18, 0.15);
+            color: #d68910;
+        }
+        
+        .risk-badge.low {
+            background: rgba(39, 174, 96, 0.15);
+            color: var(--success-color);
+        }
+        
+        .score-badge {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .sender-email {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        /* Explainable AI Section */
+        .explain-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8eef3 100%);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .explain-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .explain-content {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-section h1 {
+                font-size: 1.5rem;
+            }
+            
+            .risk-score {
+                font-size: 3rem;
+            }
+            
+            .dashboard-card {
+                padding: 1rem;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shield-check"></i>
+                Email Triage Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="refreshStats()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="clearHistory()">
+                            <i class="bi bi-trash"></i> Clear History
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container">
+            <h1><i class="bi bi-envelope-check"></i> Secure Email Triage & Phishing Intelligence</h1>
+            <p>Analyze emails for phishing indicators with explainable AI-powered risk assessment</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <!-- Left Column: Email Input -->
+            <div class="col-lg-6">
+                <!-- Email Input Form -->
+                <div class="dashboard-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-envelope-plus"></i>
+                        Email Analysis
+                    </h5>
+                    <form id="emailForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Sender Email</label>
+                            <input type="email" class="form-control email-input" id="sender" 
+                                   placeholder="sender@example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Subject Line</label>
+                            <input type="text" class="form-control email-input" id="subject" 
+                                   placeholder="Enter email subject">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email Body</label>
+                            <textarea class="form-control email-input" id="body" 
+                                      placeholder="Paste email content here..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Links (one per line)</label>
+                            <textarea class="form-control email-input" id="links" rows="2"
+                                      placeholder="https://example.com&#10;http://suspicious-link.com"></textarea>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-analyze flex-grow-1">
+                                <i class="bi bi-search"></i>
+                                Analyze Email
+                            </button>
+                            <button type="button" class="btn btn-demo" onclick="runDemo()">
+                                <i class="bi bi-lightning"></i>
+                                Demo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Result Display -->
+                <div class="dashboard-card" id="resultCard" style="display: none;">
+                    <h5 class="card-title">
+                        <i class="bi bi-clipboard-check"></i>
+                        Analysis Result
+                    </h5>
+                    <div class="risk-display" id="riskDisplay">
+                        <div class="risk-score" id="riskScore">0</div>
+                        <div class="risk-label" id="riskLabel">LOW</div>
+                    </div>
+                    <div class="explain-section">
+                        <div class="explain-title">
+                            <i class="bi bi-lightbulb"></i>
+                            Why This Assessment?
+                        </div>
+                        <div class="explain-content" id="explainContent">
+                            <!-- Dynamic explanation -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detection Flags -->
+                <div class="dashboard-card" id="flagsCard" style="display: none;">
+                    <h5 class="card-title">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Detection Flags
+                    </h5>
+                    <div class="flags-container" id="flagsContainer">
+                        <!-- Dynamic flags list -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Dashboard -->
+            <div class="col-lg-6">
+                <!-- Stats Overview -->
+                <div class="row">
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-card stat-card total">
+                            <div class="stat-number" id="totalAnalyzed">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-card stat-card high">
+                            <div class="stat-number" id="highRisk">0</div>
+                            <div class="stat-label">High</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-card stat-card medium">
+                            <div class="stat-number" id="mediumRisk">0</div>
+                            <div class="stat-label">Medium</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-card stat-card low">
+                            <div class="stat-number" id="lowRisk">0</div>
+                            <div class="stat-label">Low</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Distribution Chart -->
+                <div class="dashboard-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-pie-chart"></i>
+                        Risk Distribution
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent History -->
+                <div class="dashboard-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Analysis
+                    </h5>
+                    <div id="historyContent">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No emails analyzed yet</p>
+                            <small>Submit an email above to get started</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Secure Email Triage & Phishing Intelligence Dashboard | Built with Explainable AI</p>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <p class="mt-3">Analyzing email...</p>
+    </div>
+
+    <script>
+        // Initialize Chart
+        let riskChart;
+        
+        function initChart() {
+            const ctx = document.getElementById('riskChart').getContext('2d');
+            riskChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: [
+                            '#27ae60',
+                            '#f39c12',
+                            '#e74c3c'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+        
+        // Update chart
+        function updateChart(high, medium, low) {
+            if (riskChart) {
+                riskChart.data.datasets[0].data = [low, medium, high];
+                riskChart.update();
+            }
+        }
+        
+        // Refresh stats
+        async function refreshStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                document.getElementById('totalAnalyzed').textContent = data.total_analyzed;
+                document.getElementById('highRisk').textContent = data.high_risk;
+                document.getElementById('mediumRisk').textContent = data.medium_risk;
+                document.getElementById('lowRisk').textContent = data.low_risk;
+                
+                updateChart(data.high_risk, data.medium_risk, data.low_risk);
+                loadHistory();
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+        
+        // Load history
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history?limit=10');
+                const data = await response.json();
+                
+                const container = document.getElementById('historyContent');
+                
+                if (data.emails.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No emails analyzed yet</p>
+                            <small>Submit an email above to get started</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <div class="table-responsive">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Sender</th>
+                                    <th>Subject</th>
+                                    <th>Score</th>
+                                    <th>Risk</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                data.emails.forEach(email => {
+                    const subject = email.subject || 'No subject';
+                    const subjectDisplay = subject.length > 30 ? subject.substring(0, 30) + '...' : subject;
+                    
+                    html += `
+                        <tr>
+                            <td><span class="sender-email">${email.sender || 'Unknown'}</span></td>
+                            <td>${subjectDisplay}</td>
+                            <td><span class="score-badge">${email.score}</span></td>
+                            <td><span class="risk-badge ${email.risk.toLowerCase()}">${email.risk}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+        
+        // Form submission
+        document.getElementById('emailForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const sender = document.getElementById('sender').value;
+            const subject = document.getElementById('subject').value;
+            const body = document.getElementById('body').value;
+            const linksText = document.getElementById('links').value;
+            
+            // Parse links
+            const links = linksText.split('\n').filter(link => link.trim() !== '');
+            
+            // Show loading
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sender: sender,
+                        subject: subject,
+                        body: body,
+                        links: links
+                    })
+                });
+                
+                const result = await response.json();
+                displayResult(result);
+                await refreshStats();
+                
+            } catch (error) {
+                console.error('Error analyzing email:', error);
+                alert('Error analyzing email. Please try again.');
+            } finally {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        });
+        
+        // Display result
+        function displayResult(result) {
+            // Show result cards
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('flagsCard').style.display = result.flags.length > 0 ? 'block' : 'none';
+            
+            // Update risk display
+            const riskScore = document.getElementById('riskScore');
+            const riskLabel = document.getElementById('riskLabel');
+            
+            riskScore.textContent = result.score;
+            riskScore.className = 'risk-score ' + result.risk.toLowerCase();
+            
+            riskLabel.textContent = result.risk;
+            riskLabel.className = 'risk-label ' + result.risk.toLowerCase();
+            
+            // Update explanation
+            let explanation = '';
+            if (result.risk === 'HIGH') {
+                explanation = `This email has been classified as <strong>HIGH RISK</strong> with a score of ${result.score}/100. `;
+                explanation += `Multiple suspicious indicators were detected, suggesting this is likely a phishing attempt. `;
+                explanation += `Do NOT click any links or provide any personal information.`;
+            } else if (result.risk === 'MEDIUM') {
+                explanation = `This email has been classified as <strong>MEDIUM RISK</strong> with a score of ${result.score}/100. `;
+                explanation += `Some suspicious patterns were detected that warrant caution. `;
+                explanation += `Verify the sender's identity before taking any action.`;
+            } else {
+                explanation = `This email has been classified as <strong>LOW RISK</strong> with a score of ${result.score}/100. `;
+                explanation += `Few or no suspicious indicators were detected. `;
+                explanation += `However, always exercise caution with unexpected emails.`;
+            }
+            
+            document.getElementById('explainContent').innerHTML = explanation;
+            
+            // Update flags
+            const flagsContainer = document.getElementById('flagsContainer');
+            
+            if (result.flags.length === 0) {
+                flagsContainer.innerHTML = `
+                    <div class="flag-item" style="border-left-color: var(--success-color);">
+                        <div class="flag-icon" style="background: rgba(39, 174, 96, 0.15); color: var(--success-color);">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="flag-content">
+                            <div class="flag-type">No Suspicious Indicators</div>
+                            <div class="flag-description">No major phishing indicators were detected in this email.</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                let flagsHtml = '';
+                result.flags.forEach(flag => {
+                    const iconClass = flag.score >= 25 ? 'danger' : (flag.score >= 15 ? 'warning' : 'info');
+                    const icon = flag.score >= 25 ? 'exclamation-triangle-fill' : (flag.score >= 15 ? 'exclamation-circle' : 'info-circle');
+                    
+                    flagsHtml += `
+                        <div class="flag-item">
+                            <div class="flag-icon ${iconClass}">
+                                <i class="bi bi-${icon}"></i>
+                            </div>
+                            <div class="flag-content">
+                                <div class="flag-type">${flag.type.replace(/_/g, ' ')}</div>
+                                <div class="flag-description">${flag.description}</div>
+                            </div>
+                            <div class="flag-score">+${flag.score}</div>
+                        </div>
+                    `;
+                });
+                flagsContainer.innerHTML = flagsHtml;
+            }
+            
+            // Scroll to result
+            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Run demo
+        async function runDemo() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/demo');
+                const data = await response.json();
+                
+                // Show phishing demo result
+                displayResult(data.phishing_demo);
+                await refreshStats();
+                
+            } catch (error) {
+                console.error('Error running demo:', error);
+                alert('Error running demo. Please try again.');
+            } finally {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+        
+        // Clear history
+        async function clearHistory() {
+            if (!confirm('Are you sure you want to clear all analysis history?')) {
+                return;
+            }
+            
+            try {
+                await fetch('/api/clear', { method: 'POST' });
+                await refreshStats();
+            } catch (error) {
+                console.error('Error clearing history:', error);
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+            refreshStats();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
