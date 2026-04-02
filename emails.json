@@ -1,6 +1,42 @@
 {
   "emails": [
     {
+      "id": 2,
+      "sender": "gowrureshma@gmail.com",
+      "subject": "Subject: URGENT: Your Bank Account Will Be Suspended Immediately",
+      "body_preview": "We have detected unusual activity on your account. Your account will be permanently suspended within...",
+      "score": 100,
+      "risk": "HIGH",
+      "flags": [
+        {
+          "type": "urgent_language",
+          "description": "Urgent language detected: 'urgent'",
+          "score": 20
+        },
+        {
+          "type": "suspicious_cta",
+          "description": "Suspicious call-to-action: 'verify your details'",
+          "score": 15
+        },
+        {
+          "type": "threat_language",
+          "description": "Threatening language: 'suspend'",
+          "score": 20
+        },
+        {
+          "type": "suspicious_url",
+          "description": "Suspicious URL format detected: http://secure-bank-verification-login.com/update",
+          "score": 25
+        },
+        {
+          "type": "suspicious_domain_structure",
+          "description": "Domain with excessive hyphens: secure-bank-verification-login.com",
+          "score": 20
+        }
+      ],
+      "timestamp": "2026-04-02T18:45:35.895400"
+    },
+    {
       "id": 1,
       "sender": "gowrureshma@gmail.com",
       "subject": "give me money",
@@ -11,5 +47,5 @@
       "timestamp": "2026-04-02T18:08:25.910741"
     }
   ],
-  "total_analyzed": 1
+  "total_analyzed": 2
 }
